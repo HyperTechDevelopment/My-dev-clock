@@ -1,5 +1,7 @@
 # my-dev-clock
 
+**Português** · [English](README_en.md)
+
 Um relógio de terminal para Windows, com timer, cronômetro, contagem regressiva e
 uma fileira de painéis que transformam o terminal num painel de status.
 
