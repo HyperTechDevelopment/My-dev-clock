@@ -58,7 +58,7 @@ jobs:
           $zip = "my-dev-clock-v$version-windows-x64.zip"
           New-Item -ItemType Directory -Path pacote | Out-Null
           Copy-Item target/release/my-dev-clock.exe pacote/
-          Copy-Item config.example.toml, README.md, LICENSE pacote/
+          Copy-Item config.example.toml, README.md, README_en.md, LICENSE pacote/
           Compress-Archive -Path pacote/* -DestinationPath $zip
           $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
           "$hash  $zip" | Out-File "$zip.sha256" -Encoding ascii
