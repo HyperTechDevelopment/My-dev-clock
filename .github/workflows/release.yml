@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Sem isto o binário publicado carrega caminhos como
+      # C:\Users\<usuário>\.cargo\registry\..., que vêm dos textos de diagnóstico
+      # das dependências.
+      - name: Não deixar o caminho de usuário entrar no binário
+        shell: pwsh
+        run: |
+          Add-Content -Path $env:GITHUB_ENV -Value "RUSTFLAGS=--remap-path-prefix=$env:USERPROFILE=~"
+
+      # Uma tag v1.0.0 publicando um binário 0.9.0 passaria despercebida sem isto.
+      - name: Conferir que a tag combina com a versão do Cargo.toml
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            throw "a tag ${{ github.ref_name }} não combina com a versão $version do Cargo.toml"
+          }
+          "tag e versão combinam: v$version"
+
+      # A tag pode apontar para um commit que não passou no CI, então a release
+      # testa antes de publicar.
+      - name: Testes
+        run: cargo test --locked
+
+      - name: Compilar
+        run: cargo build --release --locked
+
+      # Trava: um binário com o caminho da máquina dentro não chega à release.
+      - name: Conferir que o binário não carrega caminho de usuário
+        shell: pwsh
+        run: |
+          $exe = "target/release/my-dev-clock.exe"
+          $text = [Text.Encoding]::GetEncoding(28591).GetString([IO.File]::ReadAllBytes($exe))
+          if ($text -match [regex]::Escape($env:USERPROFILE)) {
+            throw "o binário carrega o caminho $env:USERPROFILE"
+          }
+          "o binário não carrega caminho de usuário"
+
+      - name: Montar o pacote e a soma de verificação
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+          $zip = "my-dev-clock-v$version-windows-x64.zip"
+          New-Item -ItemType Directory -Path pacote | Out-Null
+          Copy-Item target/release/my-dev-clock.exe pacote/
+          Copy-Item config.example.toml, README.md, LICENSE pacote/
+          Compress-Archive -Path pacote/* -DestinationPath $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  $zip" | Out-File "$zip.sha256" -Encoding ascii
+          Get-Content "$zip.sha256"
+
+      - name: Publicar os arquivos na release da tag
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            target/release/my-dev-clock.exe
+            my-dev-clock-*.zip
+            my-dev-clock-*.zip.sha256

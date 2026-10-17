@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# O CI só precisa ler o repositório.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Formatação
+        run: cargo fmt --all --check
+
+      # --locked nas etapas que compilam: se o Cargo.lock sair de sincronia com o
+      # Cargo.toml, o CI falha aqui em vez de aceitar versões de dependência
+      # diferentes das que foram testadas.
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      # Os testes ao vivo ficam marcados com #[ignore] porque usam rede e o CLI
+      # gh; eles rodam sob demanda com `cargo test -- --ignored`.
+      - name: Testes
+        run: cargo test --locked
+
+      - name: Compilação de release
+        run: cargo build --release --locked
