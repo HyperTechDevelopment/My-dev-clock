@@ -1,0 +1,7 @@
+/target
+
+# AI
+.commandcode/
+
+# Voltas do cronômetro exportadas em CSV.
+*.csv
