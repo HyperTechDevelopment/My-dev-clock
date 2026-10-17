@@ -1,0 +1,193 @@
+# Configuração do my-dev-clock
+#
+# O app procura este arquivo, nesta ordem:
+#   1. o caminho passado em `--config <arquivo>`
+#   2. %XDG_CONFIG_HOME%\my-dev-clock\config.toml
+#   3. %USERPROFILE%\.config\my-dev-clock\config.toml
+#   4. %APPDATA%\my-dev-clock\config.toml
+#
+# Para gravar uma cópia deste arquivo no local padrão: `my-dev-clock --init`
+
+[default]
+# Modo inicial: clock, timer, stopwatch ou countdown
+mode = "clock"
+# Cor base dos dígitos: nome (green, cyan, lightred, ...) ou hexadecimal "#RRGGBB"
+color = "green"
+# Escala inicial dos dígitos. Deixe comentado para ajustar ao tamanho da janela,
+# ou defina um número entre 1 e 12. Também dá para digitar o tamanho em tempo de
+# execução com a tecla `s`.
+# size = 3
+show_seconds = true
+show_millis = false
+
+[clock]
+show_date = true
+# Fuso horário, por exemplo "America/Sao_Paulo"
+# timezone = "America/Sao_Paulo"
+# Temas trocados com Shift+T. Nomes embutidos: default, matrix, neon, system, fire, ice
+themes = ["matrix", "neon", "fire", "ice", "system", "default"]
+# Número máximo de colunas de widgets. O terminal decide quantas cabem (2, 4 ou 6).
+max_columns = 6
+# Estilo dos dígitos: bricks, slim, slant ou flip.
+# Em execução, Shift+F percorre os quatro.
+font = "bricks"
+# A virada dos dígitos quando eles mudam. A face `flip` liga sozinha; as outras
+# deixam desligada, a menos que você escreva flip = true.
+# flip = true
+# Quanto tempo a virada leva, em milissegundos. 0 desliga.
+flip_ms = 180
+# Animação de fundo: none, matrix, plasma, waves ou stars.
+# Em execução, Shift+A percorre as cinco.
+animation = "none"
+# Quadros por segundo da animação, de 1 a 60.
+animation_fps = 12
+# O relógio ocupa a área toda em vez de só a metade de cima.
+# Em execução, Shift+L alterna.
+fill = false
+# Formato da hora, no padrão do chrono. Sem esta chave vale o que as opções de
+# exibição pedem. "%I:%M %p" dá relógio de 12 horas.
+# format = "%H:%M:%S"
+# Formato da linha de data. Sem esta chave vale a forma longa em português.
+# date_format = "%d/%m/%Y"
+# Fusos extras mostrados ao lado da data, para quem trabalha com outro time.
+# world = ["America/New_York", "Europe/Lisbon"]
+
+# Paleta própria, usada quando o tema se chama "custom". Qualquer cor que faltar
+# vem do tema padrão. Os nomes são os mesmos do --color.
+#
+# [theme.custom]
+# clock = "#00ff88"
+# accent = "lightyellow"
+# header = "#cccccc"
+# widget = "#88aaff"
+# title = "#ffffff"
+# marker = "#ffcc00"
+# animation = "#004422"
+
+# Widgets do modo relógio. `kind` decide o que o widget mostra:
+#   cpu      uso de processador (média dos núcleos, com barra)
+#   mem      uso de memória RAM
+#   disk     espaço em disco, nativo
+#   net      tráfego de rede, nativo, com a taxa desde a última leitura
+#   git      branch, estado da árvore e distância do remoto
+#   http     um endereço, com um valor tirado do JSON (dev server)
+#   weather  previsão atual e dos próximos dias (Open-Meteo, sem chave de API)
+#   gh       pendências do GitHub para o seu usuário, via o CLI `gh`
+#   actions  as últimas execuções de CI, via o CLI `gh`
+#   command  qualquer comando que imprima algo e termine
+# `title = ""` esconde o cabeçalho, útil quando o comando imprime o próprio título.
+
+[[clock.widgets]]
+kind = "cpu"
+title = "CPU"
+refresh_secs = 3
+
+[[clock.widgets]]
+kind = "mem"
+title = "RAM"
+refresh_secs = 5
+
+[[clock.widgets]]
+kind = "weather"
+title = "Clima"
+refresh_secs = 900
+
+[clock.widgets.weather]
+city = "Curitiba"
+# ou informe as coordenadas em vez da cidade:
+# lat = -25.43
+# lon = -49.27
+units = "metric"   # metric (°C, km/h) ou imperial (°F, mph)
+days = 2
+
+[[clock.widgets]]
+kind = "gh"
+title = "Pendências"
+refresh_secs = 600
+
+[clock.widgets.gh]
+# Quantos itens listar (os pedidos de review vêm primeiro)
+limit = 4
+
+# Repositório local: branch, marcador de sujeira, à frente e atrás do remoto.
+#
+# [[clock.widgets]]
+# kind = "git"
+# title = "Git"
+# refresh_secs = 15
+#
+# [clock.widgets.git]
+# path = "C:/dev/projeto"   # sem isto, o diretório de onde o app foi aberto
+
+# Um endereço com um valor tirado do JSON, para vigiar um dev server.
+#
+# [[clock.widgets]]
+# kind = "http"
+# title = "API"
+# refresh_secs = 30
+#
+# [clock.widgets.http]
+# url = "http://localhost:3000/health"
+# path = ".status"     # caminho com pontos: .status, .data.items.0.name
+# expect = "ok"        # opcional: o widget diz se o valor bate
+
+# Execuções de CI do repositório atual, ou do repositório em `repo`.
+#
+# [[clock.widgets]]
+# kind = "actions"
+# title = "CI"
+# refresh_secs = 120
+#
+# [clock.widgets.gh]
+# repo = "owner/projeto"
+
+# Disco e rede são nativos e não pedem configuração, mas aceitam um alvo:
+#
+# [[clock.widgets]]
+# kind = "disk"
+# title = "Disco C:"
+# [clock.widgets.disk]
+# mount = "C:"
+#
+# [[clock.widgets]]
+# kind = "net"
+# title = "Rede"
+# [clock.widgets.net]
+# interface = "Ethernet"
+
+# Qualquer comando vira um widget. Com uma string só, o comando passa pelo shell;
+# com uma lista, o programa é executado direto com seus argumentos.
+# O tema atual chega ao comando na variável de ambiente MY_DEV_CLOCK_THEME.
+#
+# [[clock.widgets]]
+# kind = "command"
+# title = "Bateria"
+# command = "powercfg /batteryreport /output -"
+# refresh_secs = 300
+# timeout_secs = 20
+
+[timer]
+durations = ["25m", "5m"]
+titles = ["Foco", "Pausa"]
+repeat = false
+show_millis = true
+start_paused = false
+auto_quit = false
+# Toca a campainha do terminal quando o tempo acaba.
+bell = true
+# Comando executado quando o tempo acaba
+# execute = "msg %USERNAME% Tempo esgotado!"
+
+[stopwatch]
+title = "Cronômetro"
+# Arquivo onde as voltas são gravadas em CSV ao sair.
+# laps_csv = "voltas.csv"
+
+[countdown]
+time = "20:00"
+title = "Jantar"
+show_millis = false
+continue_on_zero = false
+reverse = false
+# Toca a campainha quando a contagem chega a zero.
+bell = true
